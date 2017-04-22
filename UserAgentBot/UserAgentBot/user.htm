@@ -1,0 +1,70 @@
+﻿<!DOCTYPE html>
+
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <title>Bot Chat</title>
+    <link href="https://unpkg.com/botframework-webchat/botchat.css" rel="stylesheet" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <style>
+        .wc-chatview-panel {
+            width: 400px;
+            height: 600px;
+            position: relative;
+        }
+
+        .h2 {
+            font-family: Segoe UI;
+        }
+    </style>
+</head>
+<body>
+    <h2 style="font-family:Segoe UI;">User Console</h2>
+    <div id="BotChatGoesHere" class="wc-chatview-panel"></div>
+    <button onclick="postButtonMessage()" style="width:120px;height:60px;padding:20px;margin-left:80px;margin-top:20px;">Click Me!</button>
+    <script src="https://unpkg.com/botframework-webchat/botchat.js"></script>
+    <script>
+            var params = BotChat.queryParams(location.search);
+
+            var user = {
+                id: params['userid'] || 'userid',
+                name: params["username"] || 'username'
+                };
+
+            var bot = {
+                id: "MyAgentBot",//params['botid'] || 'botid',
+                name: "MyAgentBot"//params["botname"] || 'botname'
+            };
+
+            window['botchatDebug'] = params['debug'] && params['debug'] === "true";
+
+            var botConnection = new BotChat.DirectLine({
+                secret: 'HHDKkr80Dhs.cwA.3XY.elsplWMAyYIANc0yk7AQ9e-4U58IvCn5BCWnyXPEHGU',
+                token: '',
+                domain: params['domain'],
+                webSocket: params['webSocket'] && params['webSocket'] === "true" // defaults to true
+            });
+
+            BotChat.App({
+                botConnection: botConnection,
+                user: user,
+                bot: bot
+            }, document.getElementById("BotChatGoesHere"));
+
+            botConnection.activity$
+                .filter(activity => activity.type === "message" && activity.name === "changeBackground")
+                .subscribe(activity => changeBackgroundColor(activity.value))
+
+            const changeBackgroundColor = (newColor) => {
+                document.body.style.backgroundColor = newColor;
+            }
+
+            const postButtonMessage = () => {
+                botConnection
+                    .postActivity({type: "message", value: "", from: {id: "me" }, name: "buttonClicked"})
+                    .subscribe(id => console.log("success"));
+            }
+
+    </script>
+</body>
+</html>

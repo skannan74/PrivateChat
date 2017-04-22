@@ -1,0 +1,99 @@
+﻿<!DOCTYPE html>
+
+<html>
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Bot Chat</title>
+    <link href="https://unpkg.com/botframework-webchat/botchat.css" rel="stylesheet" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <style>
+        .wc-chatview-panel {
+            width: 320px;
+            height: 500px;
+            position: relative;
+        }
+
+        .h2 {
+            font-family: Segoe UI;
+        }
+    </style>
+</head>
+
+<body>
+    <h2 style="font-family:Segoe UI;" id="heading">Agent Console!</h2>
+    <div>
+        <div id="BotChatGoesHere" style="float:left"></div>
+        <div style="float:left">
+            <button id="connect" onclick="connect()" style="width:120px;height:60px">Connect</button>
+        </div>
+        <div>
+            <button onclick="stopConversation()" style="width:120px;height:60px">Stop Conversation with User</button>
+        </div>
+    </div>
+    <script src="https://unpkg.com/botframework-webchat/botchat.js"></script>
+    <script>
+        var params = BotChat.queryParams(location.search);
+        var connected = false;
+        var user = {
+            id: params['userid'] || 'agent1id',
+            name: params["username"] || 'agent1name'
+        };
+
+        var bot = {
+            id: params['botid'] || 'botid',
+            name: params["botname"] || 'botname'
+        };
+
+        window['botchatDebug'] = params['debug'] && params['debug'] === "true";
+
+        var botConnection = new BotChat.DirectLine({
+            secret: 'HHDKkr80Dhs.cwA.3XY.elsplWMAyYIANc0yk7AQ9e-4U58IvCn5BCWnyXPEHGU',
+            token: params['t'],
+            domain: params['domain'],
+            webSocket: params['webSocket'] && params['webSocket'] === "true" // defaults to true
+        });
+
+        BotChat.App({
+            botConnection: botConnection,
+            user: user,
+            bot: bot
+        }, document.getElementById("BotChatGoesHere"));
+
+        const connect = () => {
+            var name;
+            if (!connected)
+                name = "connect";
+            else
+                name = "disconnect";
+            botConnection
+                .postActivity({ type: "event", value: "", from: user, name: name })
+                .subscribe(connectionSuccess);
+        };
+
+        const connectionSuccess = (id) => {
+            if (id === "retry")
+                return;
+            console.log("success");
+            connected = !connected;
+            if (connected) {
+                document.getElementById("connect").innerHTML = "Disconnect";
+                document.getElementById("heading").innerHTML = "You are now connected and are available for chat.";
+            }
+            else {
+                document.getElementById("connect").innerHTML = "Connect";
+                document.getElementById("heading").innerHTML = "You have been disconnected. Press connect to make yourself available.";
+            }
+        };
+
+        const stopConversation = () => {
+            botConnection
+                .postActivity({ type: "event", value: "", from: user, name: "stopConversation" })
+                .subscribe(id => console.log("success"));
+        };
+
+    </script>
+</body>
+
+</html>
